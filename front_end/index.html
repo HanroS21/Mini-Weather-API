@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mini Weather</title>
+  <script>
+    // Apply a saved theme before first paint so the page doesn't flash the wrong colours.
+    try {
+      var savedTheme = localStorage.getItem("miniweather.theme");
+      if (savedTheme === "dark" || savedTheme === "light") document.documentElement.dataset.theme = savedTheme;
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Switch to dark mode">Dark mode</button>
+
+  <!-- ============ Sign in / Sign up (unchanged) ============ -->
+  <main class="app" id="auth-view">
+
+    <section id="login-section">
+      <h1 class="title">Mini Weather</h1>
+      <p class="subtitle">Sign in with your username and password.</p>
+
+      <form id="login-form" class="form" novalidate>
+        <label class="field">
+          <span>Username</span>
+          <input id="auth-username" type="text" autocomplete="username" maxlength="50" placeholder="Your username" required>
+        </label>
+        <label class="field">
+          <span>Password</span>
+          <input id="auth-password" type="password" autocomplete="current-password" placeholder="Your password" required>
+        </label>
+        <button type="submit" id="login-btn" class="wide">Sign in</button>
+        <p id="auth-status" class="status" aria-live="polite" hidden></p>
+      </form>
+
+      <p class="switch">
+        New here?
+        <button type="button" id="show-signup" class="link-btn">Create an account</button>
+      </p>
+    </section>
+
+    <section id="signup-section" hidden>
+      <h1 class="title">Create an account</h1>
+      <p class="subtitle" id="signup-subtitle">Choose a username and password you'll use to sign in.</p>
+
+      <form id="signup-form" class="form" novalidate>
+        <label class="field">
+          <span>Username</span>
+          <input id="signup-username" type="text" autocomplete="username" minlength="3" maxlength="50" placeholder="e.g. jane_doe" required>
+        </label>
+        <label class="field">
+          <span>Email (optional)</span>
+          <input id="signup-email" type="email" maxlength="254" placeholder="you@example.com">
+        </label>
+        <label class="field">
+          <span>Password (12+ characters)</span>
+          <input id="signup-password" type="password" autocomplete="new-password" minlength="12" required>
+        </label>
+        <label class="field">
+          <span>Confirm password</span>
+          <input id="signup-confirm" type="password" autocomplete="new-password" minlength="12" required>
+        </label>
+        <button type="submit" id="signup-btn" class="wide">Create account</button>
+        <p id="signup-status" class="status" aria-live="polite" hidden></p>
+      </form>
+
+      <p class="switch">
+        Already have an account?
+        <button type="button" id="show-login" class="link-btn">Sign in</button>
+      </p>
+    </section>
+
+  </main>
+
+  <!-- ============ Signed-in app ============ -->
+  <main class="app app--plain" id="app-view" hidden>
+
+    <header class="site-header">
+      <div class="brand">
+        <span class="brand__icon" aria-hidden="true">⛅</span>
+        <span class="brand__name">Mini Weather</span>
+      </div>
+      <div class="user-box">
+        <p class="topbar__user">
+          <strong id="user-name"></strong>
+          <span id="role-label" class="role-label"></span>
+        </p>
+        <button type="button" id="signout" class="ghost small">Sign out</button>
+      </div>
+    </header>
+
+    <nav class="nav" aria-label="Main">
+      <a href="#/dashboard" data-page="dashboard">Weather</a>
+      <a href="#/activity" data-page="activity">Activity</a>
+      <a href="#/account" data-page="account">Account</a>
+      <a href="#/users" data-page="users" data-admin-only hidden>Users</a>
+    </nav>
+
+    <!-- Page: Weather -->
+    <section class="page" data-page="dashboard">
+      <div class="page-head">
+        <p id="greeting" class="eyebrow"></p>
+        <h2>Current weather</h2>
+      </div>
+
+      <form id="search" class="search" role="search">
+        <input id="city" type="text" placeholder="Search a city, e.g. Johannesburg" aria-label="City" autocomplete="off" required>
+        <button type="submit" id="search-btn">Search</button>
+      </form>
+      <p id="status" class="status" aria-live="polite" hidden></p>
+
+      <div id="empty-state" class="empty">
+        <div class="empty__icon" aria-hidden="true">🌦️</div>
+        <h3>Check the weather anywhere</h3>
+        <p class="muted">Search for a city to see its current conditions. Save the places you check often.</p>
+      </div>
+
+      <article id="result" class="hero" data-condition="clear" hidden>
+        <div class="hero__top">
+          <div>
+            <p id="local-date" class="hero__meta"></p>
+            <h2 id="place" class="hero__place"></h2>
+            <p id="local-time" class="hero__meta"></p>
+          </div>
+          <img id="icon" class="hero__icon" alt="" width="120" height="120">
+        </div>
+
+        <div class="hero__temp"><span id="temp"></span><span class="unit">°C</span></div>
+        <p id="desc" class="hero__desc"></p>
+
+        <p class="hero__sub">
+          <span>Feels like <strong id="feels"></strong></span>
+          <span>High <strong id="high"></strong></span>
+          <span>Low <strong id="low"></strong></span>
+        </p>
+
+        <div class="hero__actions">
+          <button type="button" id="save-city">Save this city</button>
+          <p id="save-msg" class="status" aria-live="polite" hidden></p>
+        </div>
+
+        <section class="tiles" aria-label="Weather details">
+          <div class="tile">
+            <span class="tile__label">💧 Humidity</span>
+            <strong id="humidity" class="tile__value"></strong>
+          </div>
+          <div class="tile">
+            <span class="tile__label">💨 Wind</span>
+            <strong id="wind" class="tile__value"></strong>
+            <span id="wind-dir" class="tile__sub"></span>
+          </div>
+          <div class="tile">
+            <span class="tile__label">🌡️ Pressure</span>
+            <strong id="pressure" class="tile__value"></strong>
+          </div>
+          <div class="tile">
+            <span class="tile__label">👁️ Visibility</span>
+            <strong id="visibility" class="tile__value"></strong>
+          </div>
+          <div class="tile">
+            <span class="tile__label">☁️ Cloud cover</span>
+            <strong id="clouds" class="tile__value"></strong>
+          </div>
+          <div class="tile">
+            <span class="tile__label">🌅 Sunrise</span>
+            <strong id="sunrise" class="tile__value"></strong>
+          </div>
+          <div class="tile">
+            <span class="tile__label">🌇 Sunset</span>
+            <strong id="sunset" class="tile__value"></strong>
+          </div>
+          <div class="tile tile--wide">
+            <span class="tile__label">☀️ Daylight</span>
+            <div class="daylight">
+              <div class="daylight__track"><div id="daylight-fill" class="daylight__fill"></div></div>
+              <p id="daylight-label" class="tile__sub"></p>
+            </div>
+          </div>
+        </section>
+      </article>
+
+      <section class="panel" aria-labelledby="saved-title">
+        <div class="panel__head">
+          <h2 id="saved-title" class="panel__title">Saved cities</h2>
+          <span id="saved-count" class="pill"></span>
+        </div>
+        <p id="saved-empty" class="muted">Nothing saved yet. Search for a city, then choose "Save this city".</p>
+        <ul id="saved-list" class="saved"></ul>
+      </section>
+    </section>
+
+    <!-- Page: Activity -->
+    <section class="page" data-page="activity" hidden>
+      <div class="page-head">
+        <p class="eyebrow">History</p>
+        <h2>Activity log</h2>
+        <p class="muted">Administrators see everyone's activity. Other users see only their own.</p>
+      </div>
+
+      <section class="panel">
+        <p id="activity-empty" class="muted" hidden>No activity yet.</p>
+        <ol id="activity-list" class="activity"></ol>
+      </section>
+    </section>
+
+    <!-- Page: Account -->
+    <section class="page" data-page="account" hidden>
+      <div class="page-head">
+        <p class="eyebrow">Security</p>
+        <h2>Account</h2>
+        <p class="muted">Change the password you use to sign in.</p>
+      </div>
+
+      <section class="panel">
+        <h3 class="panel__title">Change password</h3>
+        <form id="password-form" class="form" novalidate>
+          <label class="field">
+            <span>Current password</span>
+            <input id="current-password" type="password" autocomplete="current-password" required>
+          </label>
+          <label class="field">
+            <span>New password (12+ characters)</span>
+            <input id="new-password" type="password" autocomplete="new-password" minlength="12" required>
+          </label>
+          <label class="field">
+            <span>Confirm new password</span>
+            <input id="confirm-password" type="password" autocomplete="new-password" minlength="12" required>
+          </label>
+          <button type="submit" class="wide">Change password</button>
+          <p id="password-status" class="status" aria-live="polite" hidden></p>
+        </form>
+      </section>
+    </section>
+
+    <!-- Page: Users (administrators only) -->
+    <section class="page" data-page="users" hidden>
+      <div class="page-head">
+        <p class="eyebrow">Administration</p>
+        <h2>Users</h2>
+        <p class="muted">Create accounts and remove users. Sign-up also creates normal users.</p>
+      </div>
+
+      <section class="panel">
+        <h3 class="panel__title">Create a user</h3>
+        <form id="create-user-form" class="form" novalidate>
+          <div class="form__row">
+            <label class="field">
+              <span>Username</span>
+              <input id="new-username" type="text" minlength="3" maxlength="50" required placeholder="e.g. weatheruser">
+            </label>
+            <label class="field">
+              <span>Role</span>
+              <select id="new-role">
+                <option value="user">User</option>
+                <option value="admin">Administrator</option>
+              </select>
+            </label>
+          </div>
+          <label class="field">
+            <span>Email (optional)</span>
+            <input id="new-email" type="email" maxlength="254" placeholder="user@example.com">
+          </label>
+          <label class="field">
+            <span>Temporary password (12+ characters)</span>
+            <input id="new-user-password" type="password" minlength="12" required>
+          </label>
+          <button type="submit" class="wide">Create user</button>
+          <p id="admin-status" class="status" aria-live="polite" hidden></p>
+        </form>
+      </section>
+
+      <section class="panel">
+        <div class="panel__head">
+          <h3 class="panel__title">Existing users</h3>
+          <button type="button" id="refresh-users" class="ghost small">Refresh</button>
+        </div>
+        <ul id="users-list" class="users-list"></ul>
+      </section>
+    </section>
+
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
