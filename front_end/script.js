@@ -1,11 +1,3 @@
-/* ==========================================================
-   Mini Weather front end
-   1. Config & helpers   2. Theme   3. State & elements
-   4. API   5. Sign in   6. Routing & app shell
-   7. Weather   8. Saved cities   9. Activity
-   10. Account   11. Users   12. Init
-   ========================================================== */
-
 /* ---------- 1. Config & helpers ---------- */
 const SERVER_URL = "http://localhost:5000";
 const TOKEN_KEY = "miniweather.token";
