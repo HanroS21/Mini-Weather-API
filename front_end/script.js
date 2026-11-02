@@ -1,3 +1,11 @@
+/* ==========================================================
+   Mini Weather front end
+   1. Config & helpers   2. Theme   3. State & elements
+   4. API   5. Sign in   6. Routing & app shell
+   7. Weather   8. Saved cities   9. Activity
+   10. Account   11. Users   12. Init
+   ========================================================== */
+
 /* ---------- 1. Config & helpers ---------- */
 const SERVER_URL = "http://localhost:5000";
 const TOKEN_KEY = "miniweather.token";
@@ -44,6 +52,7 @@ function currentTheme() {
   return document.documentElement.dataset.theme || (systemPrefersDark.matches ? "dark" : "light");
 }
 
+// The button always offers the opposite of what's showing.
 function updateThemeButton() {
   const next = currentTheme() === "dark" ? "light" : "dark";
   themeToggle.textContent = next === "dark" ? "Dark mode" : "Light mode";
@@ -70,15 +79,9 @@ let clockTimer = null;
 
 const authView = $("auth-view");
 const appView = $("app-view");
-const loginSection = $("login-section");
-const signupSection = $("signup-section");
 const loginForm = $("login-form");
 const loginBtn = $("login-btn");
 const authStatus = $("auth-status");
-const signupForm = $("signup-form");
-const signupBtn = $("signup-btn");
-const signupStatus = $("signup-status");
-const signupSubtitle = $("signup-subtitle");
 
 const searchForm = $("search");
 const cityInput = $("city");
@@ -140,33 +143,7 @@ async function request(path, { method = "GET", body, auth = true } = {}) {
   return data;
 }
 
-/* ---------- 5. Sign in / sign up ---------- */
-
-// Switches between the sign-in and sign-up forms.
-function showAuthMode(mode) {
-  const signingUp = mode === "signup";
-  loginSection.hidden = signingUp;
-  signupSection.hidden = !signingUp;
-  setMessage(authStatus, "");
-  setMessage(signupStatus, "");
-  (signingUp ? $("signup-username") : $("auth-username")).focus();
-}
-
-$("show-signup").addEventListener("click", () => showAuthMode("signup"));
-$("show-login").addEventListener("click", () => showAuthMode("login"));
-
-// Tells the sign-up page whether the next account will be the administrator.
-async function loadSetupStatus() {
-  try {
-    const { needsSetup } = await request("/auth/setup-status", { auth: false });
-    signupSubtitle.textContent = needsSetup
-      ? "You're setting up Mini Weather. This account will be the administrator."
-      : "Choose a username and password you'll use to sign in.";
-  } catch {
-    // Keep the default text if the server can't be reached.
-  }
-}
-
+/* ---------- 5. Sign in ---------- */
 loginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const username = $("auth-username").value.trim();
@@ -186,36 +163,6 @@ loginForm.addEventListener("submit", async (event) => {
     setMessage(authStatus, err.message);
   } finally {
     loginBtn.disabled = false;
-  }
-});
-
-signupForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const username = $("signup-username").value.trim();
-  const email = $("signup-email").value.trim();
-  const password = $("signup-password").value;
-  const confirm = $("signup-confirm").value;
-
-  if (password.length < 12) return setMessage(signupStatus, "Password must be at least 12 characters.");
-  if (password !== confirm) return setMessage(signupStatus, "The passwords do not match.");
-
-  signupBtn.disabled = true;
-  setMessage(signupStatus, "Creating account…", false);
-  try {
-    const data = await request("/auth/signup", {
-      method: "POST",
-      body: { username, email, password },
-      auth: false
-    });
-    signupForm.reset();
-    showAuthMode("login");
-    $("auth-username").value = username; // pre-fill so they only type the password
-    setMessage(authStatus, data.message, false);
-    $("auth-password").focus();
-  } catch (err) {
-    setMessage(signupStatus, err.message);
-  } finally {
-    signupBtn.disabled = false;
   }
 });
 
@@ -246,7 +193,7 @@ function leaveApp(message = "") {
 
   appView.hidden = true;
   authView.hidden = false;
-  showAuthMode("login");
+  $("auth-username").focus();
 
   resetDashboard();
   activityList.replaceChildren();
@@ -692,7 +639,6 @@ async function loadUsers() {
 /* ---------- 12. Init ---------- */
 // On page load, check the stored token with the server before showing the app.
 (async function init() {
-  loadSetupStatus();
   if (!store.get(TOKEN_KEY)) return;
   try {
     const user = await request("/auth/me");
