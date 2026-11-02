@@ -17,63 +17,23 @@
 
   <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Switch to dark mode">Dark mode</button>
 
-  <!-- ============ Sign in / Sign up (unchanged) ============ -->
+  <!-- ============ Sign in (accounts are created by an administrator) ============ -->
   <main class="app" id="auth-view">
+    <h1 class="title">Mini Weather</h1>
+    <p class="subtitle">Sign in with your username and password.</p>
 
-    <section id="login-section">
-      <h1 class="title">Mini Weather</h1>
-      <p class="subtitle">Sign in with your username and password.</p>
-
-      <form id="login-form" class="form" novalidate>
-        <label class="field">
-          <span>Username</span>
-          <input id="auth-username" type="text" autocomplete="username" maxlength="50" placeholder="Your username" required>
-        </label>
-        <label class="field">
-          <span>Password</span>
-          <input id="auth-password" type="password" autocomplete="current-password" placeholder="Your password" required>
-        </label>
-        <button type="submit" id="login-btn" class="wide">Sign in</button>
-        <p id="auth-status" class="status" aria-live="polite" hidden></p>
-      </form>
-
-      <p class="switch">
-        New here?
-        <button type="button" id="show-signup" class="link-btn">Create an account</button>
-      </p>
-    </section>
-
-    <section id="signup-section" hidden>
-      <h1 class="title">Create an account</h1>
-      <p class="subtitle" id="signup-subtitle">Choose a username and password you'll use to sign in.</p>
-
-      <form id="signup-form" class="form" novalidate>
-        <label class="field">
-          <span>Username</span>
-          <input id="signup-username" type="text" autocomplete="username" minlength="3" maxlength="50" placeholder="e.g. jane_doe" required>
-        </label>
-        <label class="field">
-          <span>Email (optional)</span>
-          <input id="signup-email" type="email" maxlength="254" placeholder="you@example.com">
-        </label>
-        <label class="field">
-          <span>Password (12+ characters)</span>
-          <input id="signup-password" type="password" autocomplete="new-password" minlength="12" required>
-        </label>
-        <label class="field">
-          <span>Confirm password</span>
-          <input id="signup-confirm" type="password" autocomplete="new-password" minlength="12" required>
-        </label>
-        <button type="submit" id="signup-btn" class="wide">Create account</button>
-        <p id="signup-status" class="status" aria-live="polite" hidden></p>
-      </form>
-
-      <p class="switch">
-        Already have an account?
-        <button type="button" id="show-login" class="link-btn">Sign in</button>
-      </p>
-    </section>
-
+    <form id="login-form" class="form" novalidate>
+      <label class="field">
+        <span>Username</span>
+        <input id="auth-username" type="text" autocomplete="username" maxlength="50" placeholder="Your username" required>
+      </label>
+      <label class="field">
+        <span>Password</span>
+        <input id="auth-password" type="password" autocomplete="current-password" placeholder="Your password" required>
+      </label>
+      <button type="submit" id="login-btn" class="wide">Sign in</button>
+      <p id="auth-status" class="status" aria-live="polite" hidden></p>
+    </form>
   </main>
 
   <!-- ============ Signed-in app ============ -->
@@ -241,7 +201,7 @@
       <div class="page-head">
         <p class="eyebrow">Administration</p>
         <h2>Users</h2>
-        <p class="muted">Create accounts and remove users. Sign-up also creates normal users.</p>
+        <p class="muted">Create accounts and remove users. Only administrators can add users.</p>
       </div>
 
       <section class="panel">
